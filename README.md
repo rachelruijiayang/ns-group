@@ -9,12 +9,14 @@ Run the following command, replacing \<key_name> and \<cert_name> with the desir
 - Answer the prompts given by OpenSSL.
 
 ### Run
+Client: Run one of the Makefile test commands (``make c1``, ``make c2``, or ``make c3``)
+testserver: python testserver.py (adjust the port used within the code)
 
 ### Division of Labor
 
 #### Client
 Jianpu
-- Skeleton code & command line file transfer
+- Skeleton code
 
 Ruijia
-- Implement plaintext file transfer
+- Implemented plaintext and encrypted file transfer
