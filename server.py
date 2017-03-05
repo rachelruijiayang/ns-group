@@ -2,9 +2,12 @@
 #COMS 4180 group project
 #server
 #
-# Command line arguments:
-# -port number on which server will listen for connections
-#
+# this code currently assumes that only 1 client will connect to the server during the lifetime of the server. this means
+# that the following situations are not supported:
+# 1) multiple clients being connected simultaneously
+# 2) client connecting, then user kills the client side (with "stop") command which kills the socket (which causes server
+#    to exit), and then client connecting again
+# TODO: wait for instructor response on whether current behavior is correct, or whether we need to support case #2
 
 from socket import *
 import ssl
@@ -87,13 +90,18 @@ class userThread(threading.Thread):
 				return
 		
 		receivedMessage = recv_message(mySocket)
+		if receivedMessage is None: #then that means the socket was closed on the client side
+			self.stop()
+			return
 
     unpickled_dict = pickle.loads(receivedMessage)
 
-    action = unpickled_dict['action']
-		filename = unpickled_dict['filename']
+    #we established our client-server protocol such that the client's message to the server will always be a dictionary
+    #contanining these 4 fields
+    action = unpickled_dict['action'] #either "get" or "put"
+		filename = unpickled_dict['filename'] #this can be full path + filename, relative path + filename, or just the filename
 		text = unpickled_dict['text'] #this could be plaintext or IV+ciphertext
-		signature = unpickled_dict['signature']
+		signature = unpickled_dict['signature'] #SHA256 hash, then signed with client's RSA private key
 
 		if action == "put":
 			basename = os.path.basename(filename) #if filename is "/foo/bar/text.txt", then basename is "text.txt"
@@ -108,6 +116,7 @@ class userThread(threading.Thread):
 
 				status = 'success'
 			except IOError as e:
+				#theoretically this shouldn't happen because we are writing the file to the same directory that the server is executing in, so there should be no permission problems
 				status = 'failure'
 
 
@@ -144,7 +153,7 @@ class userThread(threading.Thread):
 				})
 			send_message(mySocket, pickled_message)
 
-		print "Received action '" + action + "', filename '" + filename + "', status is: " + status
+		print "Received action '" + action + "', filename '" + filename + "', resulting status is: " + status
 			
 
 #====================================================== the main code
@@ -155,6 +164,7 @@ listenerSocket.listen(1)
 
 
 socketToClient, addr = listenerSocket.accept()
+##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
 sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
 print 'Received incoming connection from ' + addr[0] + ':' + str(addr[1])
 
