@@ -20,13 +20,11 @@ import random
 BUF_SIZE = 1024
 
 """
-Format of pickled string:
+Format of pickled string when client sends to server:
 pickled_string = pickle.dumps({
+	"action": action, #either "put" or "get"
 	"filename": filename,
-	"mode": mode,
-	"plaintext": plaintext, 
-	"iv": iv,
-	"ciphertext": ciphertext,
+	"text": text, #either plaintext or IV+ciphertext
 	"signature": signature
 })
 """
