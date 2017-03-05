@@ -7,19 +7,18 @@
 #
 
 from socket import *
-from Crypto.Cipher import AES
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
+import ssl
 import pickle
 import signal
 import sys
 import threading
+from helpers import *
+import os
 
 
 #====================================================== get command line arguments and validate them
 
-#if you run "python server.py 1555", then sys.argv has 2 arguments: server.py is the 1st, 1555 is the 2nd
-##TODO: also need to pass cert file names, i think
+#if you run "python server.py 1555 auth/server.crt auth/server.key auth/client.crt", then sys.argv has 5 arguments: server.py is the 1st, 1555 is the 2nd, auth/server.crt is the 3rd, auth/server.key is the 4th, and auth/client.crt is the 5th
 if(len(sys.argv) != 5):
 	print "Invalid number of arguments. Invoke the server using: python server.py <port> <server certificate> <server private key> <client certificate>, where <port> is a port number in the inclusive range [1024, 65535], <server certificate> is the server's certificate file (for example, auth/server.crt), <server private key> is the server's RSA private key file (for example, auth/server.key), and <client certificate> is the client's certificate file (for example, auth/client.crt)"
 
@@ -87,25 +86,65 @@ class userThread(threading.Thread):
 			if(self.stopped()):
 				return
 		
-		raw_msglen = mySocket.recvall(4)
-    if not raw_msglen:
-        return None
-    msglen = struct.unpack('>I', raw_msglen)[0]
-    # Read the message data
-    return recvall(sock, msglen)
+		receivedMessage = recv_message(mySocket)
 
-		raw_msglen = mySocket.recv(4)
-
-
-    if not data: self.stop() #mySocket.recv() will be an empty string "" if the remote side closed the socket
-    received_str = received_str + data
-
-    unpickled_dict = pickle.loads(received_str)
+    unpickled_dict = pickle.loads(receivedMessage)
 
     action = unpickled_dict['action']
 		filename = unpickled_dict['filename']
 		text = unpickled_dict['text'] #this could be plaintext or IV+ciphertext
 		signature = unpickled_dict['signature']
+
+		if action == "put":
+			basename = os.path.basename(filename) #if filename is "/foo/bar/text.txt", then basename is "text.txt"
+			try: 
+				f = open(basename, 'wb')
+				f.write(text)
+				f.close()
+
+				f = open(basename + '.sha256', 'wb')
+				f.write(signature)
+				f.close()
+
+				status = 'success'
+			except IOError as e:
+				status = 'failure'
+
+
+
+			pickled_message = pickle.dumps({
+				'status': status,
+				'text': None, 
+				'signature': None
+				})
+			send_message(mySocket, pickled_message)
+
+		if action == "get":
+			try:
+				#filename might be a full or relative path ("/foo/bar/file.txt" or "./subdirectory/file.txt"). the server will then
+				#try to access that. this may fail because we attempt to read something we don't have access to.
+				f = open(filename, 'rb')
+				text = f.read()
+				f.close()
+
+				f = open(filename + '.sha256', 'rb')
+				signature = f.read()
+				f.close()
+
+				status = 'success'
+			except IOError as e:
+				status = 'failure'
+				text = None,
+				signature = None
+
+			pickled_message = pickle.dumps({
+				'status': status,
+				'text': text, 
+				'signature': signature
+				})
+			send_message(mySocket, pickled_message)
+
+		print "Received action '" + action + "', filename '" + filename + "', status is: " + status
 			
 
 #====================================================== the main code
@@ -119,5 +158,6 @@ socketToClient, addr = listenerSocket.accept()
 sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
 print 'Received incoming connection from ' + addr[0] + ':' + str(addr[1])
 
+#create a thread, give the thread the socket connection with the client, and run the thread
 userThread = userThread(sslSocketToClient)
 userThread.start()
