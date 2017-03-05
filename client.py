@@ -219,21 +219,27 @@ def putE(ssl_sock, filename, aes_key):
 	signature = ckey.sign(file_hash, '')
 
 	# Serialize data and send to server
-	ctos = pickle.dumps({
+	ctos_pickle = pickle.dumps({
 		"action": "put"
 		"filename": filename,
 		"text": iv_ciphertext,
 		"signature": signature
 		})
-	
-	# ssl_sock.send(ctos) # helper function
+	helpers.send_message(ssl_sock, ctos_pickle) # helper function
 
 	# get stoc from server
-	print "transfer of " + filename + " complete"
+	stoc_pickle = helpers.recv_message()
+	if (stoc_pickle == None):
+		print "Error: " + filename + " could not be transferred"
+	stoc = pickle.loads(stoc_pickle)
+	if (stoc["status"] == "success"):
+		print "transfer of " + filename + " complete"
+	else:
+		print "Error: " + filename + " could not be transferred"
 
-"""
 def getE(ssl_sock, filename, aes_key):
-	
+	pass
+	"""
 	# Send a request to the server asking for the file
 	pickled_string = pickle.dumps({
 		"action": "get"
@@ -274,8 +280,11 @@ def getE(ssl_sock, filename, aes_key):
 		# If the hash does not match, client displays a message to the user before 
 		# displaying the prompt again
 		print "Error: Computed hash of " + recv_filename + " does not match received hash"
+	"""
 
 def putN(ssl_sock, filename):
+	pass
+	"""
 	# Open and read file
 	f = open(filename, 'rb')
 	plaintext = f.read()
@@ -305,8 +314,11 @@ def putN(ssl_sock, filename):
 	ssl_sock.send(pickled_string)
 	
 	print "transfer of " + filename + " complete"
+	"""
 
 def getN(ssl_sock, filename):
+	pass
+	"""
 	# Send a request to the server asking for the file
 	pickled_string = pickle.dumps({
 		"action": "get"
@@ -344,7 +356,7 @@ def getN(ssl_sock, filename):
 		# If the hash does not match, client displays a message to the user before 
 		# displaying the prompt again
 		print "Error: Computed hash of " + filename + " does not match received hash"
-"""
+	"""
 
 
 ################################################################################

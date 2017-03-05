@@ -94,7 +94,7 @@ class userThread(threading.Thread):
 			self.stop()
 			return
 
-    unpickled_dict = pickle.loads(receivedMessage)
+	unpickled_dict = pickle.loads(receivedMessage)
 
     #we established our client-server protocol such that the client's message to the server will always be a dictionary
     #contanining these 4 fields
