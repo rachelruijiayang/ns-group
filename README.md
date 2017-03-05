@@ -19,4 +19,5 @@ Jianpu
 - Skeleton code
 
 Ruijia
+- More skeleton code
 - Implemented plaintext and encrypted file transfer
