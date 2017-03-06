@@ -159,15 +159,18 @@ def decryptAesCbc(aes_key, iv_ciphertext):
 # File Handling
 ################################################################################
 def readFileSafe(filename, option='rb'):
-	f = open(filename, option)
 	read_contents = None
-	try:
-		read_contents = f.read()
-	except:
-		print "Could not read file " + filename
-	finally:
-		f.close()
-		return read_contents
+	if (os.path.isfile(filename)):
+		f = open(filename, option)
+		try:
+			read_contents = f.read()
+		except:
+			print "Could not read file " + filename
+		finally:
+			f.close()
+	else:
+		print "File " + filename + " does not exist"
+	return read_contents
 
 def writeFileSafe(filename, write_contents, option='wb'):
 	f = open(filename, option)
@@ -291,35 +294,38 @@ def main():
 			ssl_sock.close()
 			exit(0)
 
-		filename = action_string[1]
-		encrypt_option = action_string[2]
+		if (len(action_string) == 3 or len(action_string) == 4):
+			filename = action_string[1]
+			encrypt_option = action_string[2]
 
-		# E option
-		if (encrypt_option == "E"):
-			if (len(action_string) != 4):
-				print "Error: Missing parameters, \"E\" requires a password"
-				continue
-			aes_key = generateAesKey(action_string[3])
-			if (aes_key == 0):
-				print "Error: E mode password must be eight characters"
-				continue
+			# E option
+			if (encrypt_option == "E"):
+				if (len(action_string) != 4):
+					print "Error: Missing parameters, \"E\" requires a password"
+					continue
+				aes_key = generateAesKey(action_string[3])
+				if (aes_key == 0):
+					print "Error: E mode password must be eight characters"
+					continue
 
-		# put
-		if (action == "put"):
-			if (encrypt_option == "E"):
-				put("E", ssl_sock, filename, aes_key)
-			elif (encrypt_option == "N"):
-				put("N", ssl_sock, filename)
-			else:
-				print "Invalid parameter \"" + encrypt_option +"\""
-		# get
-		elif (action == "get"):
-			if (encrypt_option == "E"):
-				get("E", ssl_sock, filename, aes_key)
-			elif (encrypt_option == "N"):
-				get("N", ssl_sock, filename)
-			else:
-				print "Invalid parameter \"" + encrypt_option +"\""
+			# put
+			if (action == "put"):
+				if (encrypt_option == "E"):
+					put("E", ssl_sock, filename, aes_key)
+				elif (encrypt_option == "N"):
+					put("N", ssl_sock, filename)
+				else:
+					print "Invalid parameter \"" + encrypt_option +"\""
+			# get
+			elif (action == "get"):
+				if (encrypt_option == "E"):
+					get("E", ssl_sock, filename, aes_key)
+				elif (encrypt_option == "N"):
+					get("N", ssl_sock, filename)
+				else:
+					print "Invalid parameter \"" + encrypt_option +"\""
+			else: 
+				print "Invalid commands, options are \"get\" \"put\" \"stop\""
 		else:
 			print "Invalid commands, options are \"get\" \"put\" \"stop\""
 
