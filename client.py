@@ -9,7 +9,7 @@ import helpers
 
 # Sockets, TLS/SSL
 import socket, ssl
-import tools
+import struct
 
 # Cryptography
 from Crypto.Cipher import AES
@@ -94,14 +94,18 @@ def generateAesKey(pw):
 	if (len(pw) != 8):
 		return 0
 	random.seed(pw)
-	shift = AES.block_size*8 - 1;
+
+	return struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32))
+
+
+	# shift = AES.block_size*8 - 1;
 	#num = random.getrandbits(shift) + (1 << shift)
-	num = random.randrange(1 << 127, 1 << 128)
+	# num = random.randrange(1 << 127, 1 << 128)
 	#print "AES BLOCK SIZE: " + str(AES.block_size)
 	#print "SIZE OF NUM: " + str(sys.getsizeof(num))
 	#return str(random.getrandbits(AES.block_size))
 	#return str(num)	# TODO
-	return "temporaryaeskey!"
+	#return "temporaryaeskey!"
 
 def pad(msg):
 	return msg + (AES.block_size - len(msg) % AES.block_size) * chr(AES.block_size - len(msg) % AES.block_size)
