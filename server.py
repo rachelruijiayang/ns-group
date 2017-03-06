@@ -181,9 +181,19 @@ listenerSocket.listen(1)
 
 
 socketToClient, addr = listenerSocket.accept()
-##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
-sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
 print 'Received incoming connection from ' + addr[0] + ':' + str(addr[1])
+
+##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
+try:
+  sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
+except ssl.SSLError as e:
+  print "SSLError occurred: " + e.reason
+  exit()
+except Exception as e:
+  print "Exception occurred: "
+  print e
+  exit()
+
 
 #create a thread, give the thread the socket connection with the client, and run the thread
 myUserThread = userThread(sslSocketToClient)
