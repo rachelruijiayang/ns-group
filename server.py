@@ -119,6 +119,7 @@ class userThread(threading.Thread):
           f.close()
 
           f = open(basename + '.sha256', 'wb')
+          print "serv received signature: " + signature
           f.write(signature)
           f.close()
 
