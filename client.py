@@ -17,9 +17,6 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto import Random
 import random
-from Crypto.Util.asn1 import DerSequence
-from Crypto.PublicKey import RSA
-from binascii import a2b_base64
 
 """
 client_to_server:
@@ -212,8 +209,8 @@ def put(option, ssl_sock, filename, aes_key=""):
 	plaintext_hash = sha256Hash(plaintext)
 
 	# Signature - encrypt the hash with client's RSA private key
-	signature = str(ckey.sign(plaintext_hash, '')[0])
-	print "signature: " + signature
+	signature = ckey.sign(plaintext_hash, '')
+	print "type of signature is: " + str(type(signature))
 
 	# Serialize data and send to server
 	ctos_pickle = pickle.dumps({
@@ -267,7 +264,6 @@ def get(option, ssl_sock, filename, aes_key=""):
 
 	# Use client's public key to decrypt the hash and compare the computed hash to the received hash
 	#cpubkey = extractPubKeyFromCert(ccert_fn)
-	print "signature: " + stoc["signature"]
 	print "signature is of type: " + str(type(stoc["signature"]))
 	if (cpubkey.verify(plaintext_hash, stoc["signature"])==1):
 		print "retrieval of " + filename + " complete"
