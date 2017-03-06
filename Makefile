@@ -1,11 +1,11 @@
 c1:
-	python client.py localhost 3000 auth/client.crt auth/client.key auth/server.crt
+	python client.py localhost 3000 auth/client.crt auth/client.key auth/server.crt auth/clientpubkey.pem
 
 c2: 
-	python client.py localhost 8888 auth/client.crt auth/client.key auth/server.crt
+	python client.py localhost 8888 auth/client.crt auth/client.key auth/server.crt auth/clientpubkey.pem
 
 c3: 
-	python client.py localhost 32616 auth/client.crt auth/client.key auth/server.crt
+	python client.py localhost 32616 auth/client.crt auth/client.key auth/server.crt auth/clientpubkey.pem
 
 s1:
 	python server.py 3000 auth/server.crt auth/server.key auth/client.crt

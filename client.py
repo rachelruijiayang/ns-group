@@ -40,7 +40,7 @@ server_to_client:
 }
 """
 
-if(len(sys.argv) != 6):
+if(len(sys.argv) != 7):
     print "Usage: ./client <server's IP or hostname> <server port> <client certificate filename> " \
         "<client private key filename> <server certificate filename>"
     exit()
@@ -73,7 +73,7 @@ if (not os.path.isfile(sys.argv[4])):
     exit()
 ckey_fn = sys.argv[4]
 try:
-	ckey_f = open(ckey_fn)
+	ckey_f = open(ckey_fn, 'rb')
 	ckey = RSA.importKey(ckey_f.read())
 except:
 	print "Could not import client's RSA private key in file " + ckey_fn
@@ -86,6 +86,20 @@ if (not os.path.isfile(sys.argv[5])):
     print "File " + sys.argv[5] + " does not exist"
     exit()
 scert_fn = sys.argv[5]
+
+# Check client's extracted public key filename
+if (not os.path.isfile(sys.argv[6])):
+    print "File " + sys.argv[6] + " does not exist"
+    exit()
+cpubkey_fn = sys.argv[6]
+try:
+	cpubkey_f = open(cpubkey_fn, 'rb')
+	cpubkey = RSA.importKey(cpubkey_f.read())
+except:
+	print "Could not import client's RSA public key in file " + cpubkey_fn
+	exit()
+finally:
+	cpubkey_f.close()
 
 ################################################################################
 # AES Encryption
@@ -127,7 +141,7 @@ def encryptAesCbc(aes_key, plaintext):
 
 	# Prepend the IV to the ciphertext
 	iv_ciphertext = iv + ciphertext
-
+	
 	return iv_ciphertext
 
 def decryptAesCbc(aes_key, iv_ciphertext):
@@ -179,30 +193,10 @@ def sha256Hash(text):
 	file_hash = hasher.digest()
 	return file_hash
 
-def extractPubKeyFromCert(param_cert_fn):
-	# Convert from PEM to DER
-	f = open(param_cert_fn)
-	pem = f.read()
-	f.close()
-	lines = pem.replace(" ",'').split()
-	der = a2b_base64(''.join(lines[1:-1]))
-
-	# Extract subjectPublicKeyInfo field from X.509 certificate (see RFC3280)
-	cert = DerSequence()
-	cert.decode(der)
-	tbsCertificate = DerSequence()
-	tbsCertificate.decode(cert[0])
-	subjectPublicKeyInfo = tbsCertificate[6]
-
-	# Initialize RSA key
-	pubkey = RSA.importKey(subjectPublicKeyInfo)
-
-	return pubkey
-
 ################################################################################
 # Application actions
 ################################################################################
-def put(option, ssl_sock, filename, aes_key):
+def put(option, ssl_sock, filename, aes_key=""):
 	# Open and read file
 	plaintext = readFileSafe(filename, 'rb')
 	if (plaintext == None):
@@ -218,7 +212,8 @@ def put(option, ssl_sock, filename, aes_key):
 	plaintext_hash = sha256Hash(plaintext)
 
 	# Signature - encrypt the hash with client's RSA private key
-	signature = ckey.sign(plaintext_hash, '')
+	signature = str(ckey.sign(plaintext_hash, '')[0])
+	print "signature: " + signature
 
 	# Serialize data and send to server
 	ctos_pickle = pickle.dumps({
@@ -230,7 +225,7 @@ def put(option, ssl_sock, filename, aes_key):
 	helpers.send_message(ssl_sock, ctos_pickle) # helper function
 
 	# get stoc from server
-	stoc_pickle = helpers.recv_message()
+	stoc_pickle = helpers.recv_message(ssl_sock)
 	if (stoc_pickle == None):
 		print "Error: " + filename + " could not be transferred"
 		return
@@ -240,7 +235,7 @@ def put(option, ssl_sock, filename, aes_key):
 	else:
 		print "Error: " + filename + " could not be transferred"
 
-def get(option, ssl_sock, filename, aes_key):
+def get(option, ssl_sock, filename, aes_key=""):
 	# Send a request to the server asking for file
 	ctos_pickle = pickle.dumps({
 		"action": "get",
@@ -251,7 +246,7 @@ def get(option, ssl_sock, filename, aes_key):
 	helpers.send_message(ssl_sock, ctos_pickle)
 
 	# Receive file and corresponding hash from server
-	stoc_pickle = helpers.recv_message()
+	stoc_pickle = helpers.recv_message(ssl_sock)
 	if (stoc_pickle == None):
 		print "Error: " + filename + " was not retrieved."
 		return
@@ -268,170 +263,16 @@ def get(option, ssl_sock, filename, aes_key):
 		plaintext = stoc["text"]
 
 	# Compute the sha256 hash of the plaintext file
-	plaintext_hash = sha256Hash(text)
+	plaintext_hash = sha256Hash(plaintext)
 
 	# Use client's public key to decrypt the hash and compare the computed hash to the received hash
-	cpubkey = extractPubKeyFromCert(cert_fn)
+	#cpubkey = extractPubKeyFromCert(ccert_fn)
+	print "signature: " + stoc["signature"]
+	print "signature is of type: " + str(type(stoc["signature"]))
 	if (cpubkey.verify(plaintext_hash, stoc["signature"])==1):
 		print "retrieval of " + filename + " complete"
 	else:
 		print "Error: Computed hash of " + filename + " does not match retrieved hash"
-
-"""
-def putE(ssl_sock, filename, aes_key):
-	# Open and read file
-	plaintext = readFileSafe(filename, 'rb')
-	if (plaintext == None):
-		return
-
-	# AES encryption
-	iv_ciphertext = encryptAesCbc(aes_key, plaintext)
-
-	# Hash the plaintext file
-	file_hash = sha256Hash(plaintext)
-
-	# Signature - encrypt the hash with client's RSA private key
-	signature = ckey.sign(file_hash, '')
-
-	# Serialize data and send to server
-	ctos_pickle = pickle.dumps({
-		"action": "put"
-		"filename": filename,
-		"text": iv_ciphertext,
-		"signature": signature
-		})
-	helpers.send_message(ssl_sock, ctos_pickle) # helper function
-
-	# get stoc from server
-	stoc_pickle = helpers.recv_message()
-	if (stoc_pickle == None):
-		print "Error: " + filename + " could not be transferred"
-	stoc = pickle.loads(stoc_pickle)
-	if (stoc["status"] == "success"):
-		print "transfer of " + filename + " complete"
-	else:
-		print "Error: " + filename + " could not be transferred"
-"""
-
-def getE(ssl_sock, filename, aes_key):
-	pass
-	"""
-	# Send a request to the server asking for the file
-	pickled_string = pickle.dumps({
-		"action": "get"
-		"filename": filename,
-		"text": None,
-		"signature": None
-		})
-	# ssl_sock.send(pickled_string) # helper function
-
-	# Receive file and corresponding hash from server
-	# data = server.recv()	# Blocks until data is received # helper function
-	
-	stoc = pickle.loads(res)
-
-	stoc_status = stoc["status"]
-	stoc_text = stoc["text"]
-	stoc_signature = stoc["signature"]
-
-	# Decrypt the file
-	plaintext = decryptAesCbc(aes_key, stoc_text)
-
-	# Use client's public key to unencrypt the hash
-
-	# Compute the sha256 hash of the plaintext file
-	hasher = SHA256.new()
-	hasher.update(plaintext)
-	computed_hash = hasher.digest()
-
-	# Compare the computed hash to the received hash
-	if (computed_hash == recv_hash):
-		# If the hash matches, client writes the file to the current directory
-		f = open(filename, 'wb')
-		f.write(plaintext)
-		f.close()
-		print "retrieval of " + filename + " complete"
-
-	else:
-		# If the hash does not match, client displays a message to the user before 
-		# displaying the prompt again
-		print "Error: Computed hash of " + recv_filename + " does not match received hash"
-	"""
-
-"""
-def putN(ssl_sock, filename):
-	# Open and read file
-	plaintext = readFileSafe(filename, 'rb')
-	if (plaintext == None):
-		return
-
-	# Hash the plaintext file
-	file_hash = sha256Hash(plaintext)
-
-	# Signature - encrypt the hash with client's RSA private key
-	signature = ckey.sign(file_hash, '')
-
-	# Serialize data and send to server
-	ctos_pickle = pickle.dumps({
-		"action": "put"
-		"filename": filename,
-		"text": iv_ciphertext,
-		"signature": signature
-		})
-	helpers.send_message(ssl_sock, ctos_pickle) # helper function
-
-	# get stoc from server
-	stoc_pickle = helpers.recv_message()
-	if (stoc_pickle == None):
-		print "Error: " + filename + " could not be transferred"
-	stoc = pickle.loads(stoc_pickle)
-	if (stoc["status"] == "success"):
-		print "transfer of " + filename + " complete"
-	else:
-		print "Error: " + filename + " could not be transferred"
-"""
-
-def getN(ssl_sock, filename):
-	pass
-	"""
-	# Send a request to the server asking for the file
-	pickled_string = pickle.dumps({
-		"action": "get"
-		"mode": "E",
-		"filename": filename,
-		"plaintext": None, 
-		"iv": None,
-		"ciphertext": None,
-		"signature": None
-		})
-	ssl_sock.send(pickled_string)
-
-	# Receive file and corresponding hash from server
-	data = server.recv()	# Blocks until data is received
-	file_and_hash = pickle.loads(res)
-
-	filename = file_and_hash["filename"]
-	recv_text = file_and_hash["file"]
-	recv_hash = file_and_hash["hash"]
-
-	# Compute the sha256 hash of the plaintext file
-	hasher = SHA256.new()
-	hasher.update(plaintext)
-	computed_hash = hasher.digest()
-
-	# Compare the computed hash to the received hash
-	if (computed_hash == recv_hash):
-		# If the hash matches, client writes the file to the current directory
-		f = open(filename, 'wb')
-		f.write(plaintext)
-		f.close()
-		print "retrieval of " + filename + " complete"
-
-	else:
-		# If the hash does not match, client displays a message to the user before 
-		# displaying the prompt again
-		print "Error: Computed hash of " + filename + " does not match received hash"
-	"""
 
 
 ################################################################################
@@ -472,7 +313,7 @@ def main():
 			if (encrypt_option == "E"):
 				put("E", ssl_sock, filename, aes_key)
 			elif (encrypt_option == "N"):
-				put("N", ssl_sock, filename, aes_key)
+				put("N", ssl_sock, filename)
 			else:
 				print "Invalid parameter \"" + encrypt_option +"\""
 		# get
@@ -480,7 +321,7 @@ def main():
 			if (encrypt_option == "E"):
 				get("E", ssl_sock, filename, aes_key)
 			elif (encrypt_option == "N"):
-				get("N", ssl_sock, filename, aes_key)
+				get("N", ssl_sock, filename)
 			else:
 				print "Invalid parameter \"" + encrypt_option +"\""
 		else:
