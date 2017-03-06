@@ -119,7 +119,7 @@ class userThread(threading.Thread):
           f.close()
 
           f = open(basename + '.sha256', 'wb')
-          f.write(signature)
+          f.write(pickle.dumps(signature))
           f.close()
 
           status = 'success'
@@ -145,7 +145,7 @@ class userThread(threading.Thread):
           f.close()
 
           f = open(filename + '.sha256', 'rb')
-          signature = f.read()
+          signature = pickle.loads(f.read())
           f.close()
 
           status = 'success'
