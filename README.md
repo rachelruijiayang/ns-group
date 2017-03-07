@@ -31,7 +31,7 @@ Install pip by running - ``$ sudo apt-get install python-pip``</br>
 Then install the pycrypto package with - ``$ pip install pycrypto``
 
 ### Run
-Client: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
+Quick Run: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
 
 Alternatively:
 ``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
@@ -45,3 +45,5 @@ where
 - ``<client certificate filename>`` is the client's certificate file (for example, auth/client.crt)
 - ``<client private key filename>`` is the client's RSA private key file (for example, auth/client.key)
 - ``<client public key filename>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
+
+The program then behaves as specified in the project instructions.
