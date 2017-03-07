@@ -6,20 +6,8 @@ Ruijia Yang (ry2277)
 
 ## Installation/User Guide
 
-### Installation
-
-#### Creating and setting up certificates:
-We have included some premade client and server keys/certificates in the auth folder, but you can also generate your own in a directory of your choosing.
-
-The following instructions specify how to generate the client's private and public keys and certificate. To generate these for the server, replace ``client`` with ``server``.
-- ``openssl genrsa -out client.key 2048``: Generates the client's private key</br>
-- ``openssl req -new -key client.key -out client.csr``: Generates a certificate request for the client. Follow the prompts.</br>
-- ``openssl x509 -req -sha256 -days 365 -in client.csr -signkey client.key -out client.crt``: Client self-signs the requested certificate</br>
-- ``openssl x509 -pubkey -noout < client.crt > clientpubkey.pem``: Extracts the client's public key from the certificate. Necessary for PyCrypto</br>
-- ``rm *.csr``: Removes the now-unnecessary certificate request.
-
-Note: The commands above do not set up a password for encrypting the RSA keys.</br>
-Reference: https://devcenter.heroku.com/articles/ssl-certificate-self</br>
+### Downloading the code
+``git clone https://github.com/ruijiayang/ns-group.git``
 
 ### Environment Setting
 If you are running the server on a Google VM and want to connect with a client that is running somewhere other than the VM that the server is running on, specific firewall rules need to be added to allow the TCP port connection. The process is:
@@ -35,7 +23,23 @@ SSH into your Google Compute Engine VM. If it is a fresh VM (fresh Ubuntu 16.04 
 - Install pip by running - ``$ sudo apt-get install python-pip``
 - Then install the pycrypto package with - ``$ pip install pycrypto``
 
+Also, make sure openssl is installed:
+- ``sudo apt-get install libssl-dev``
+
 In particular, client.py uses the pycrypto package, so whatever machine you run the client on, it needs to have pycrypto installed.
+
+#### Creating and setting up certificates:
+We have included some premade client and server keys/certificates in the auth folder, but you can also generate your own in a directory of your choosing.
+
+The following instructions specify how to generate the client's private and public keys and certificate. To generate these for the server, replace ``client`` with ``server``.
+- ``openssl genrsa -out client.key 2048``: Generates the client's private key</br>
+- ``openssl req -new -key client.key -out client.csr``: Generates a certificate request for the client. Follow the prompts.</br>
+- ``openssl x509 -req -sha256 -days 365 -in client.csr -signkey client.key -out client.crt``: Client self-signs the requested certificate</br>
+- ``openssl x509 -pubkey -noout < client.crt > clientpubkey.pem``: Extracts the client's public key from the certificate. Necessary for PyCrypto</br>
+- ``rm *.csr``: Removes the now-unnecessary certificate request.
+
+Note: The commands above do not set up a password for encrypting the RSA keys.</br>
+Reference: https://devcenter.heroku.com/articles/ssl-certificate-self</br>
 
 ### Run
 Quick Run: Run one of the Makefile test command pairs (``make s1`` and ``make c1``, ``make s2`` and ``make c2``, etc.)</br>
