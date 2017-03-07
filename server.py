@@ -9,7 +9,7 @@
 #    to exit), and then client connecting again
 # the instructor has confirmed that the behavior we implement is acceptable
 
-from socket import *
+import socket
 import ssl
 import pickle
 import signal
@@ -17,6 +17,7 @@ import sys
 import threading
 from helpers import *
 import os
+import errno
 
 
 #====================================================== get command line arguments and validate them
@@ -99,9 +100,7 @@ class userThread(threading.Thread):
       if(self.stopped()):
         return
     
-      print "checkpoint alpha"
       receivedMessage = recv_message(self.mySocket)
-      print "checkpoint bravo"
       if receivedMessage is None: #then that means the socket was closed on the client side
         self.stop()
         return
@@ -178,18 +177,17 @@ class userThread(threading.Thread):
 
 #====================================================== the main code
 
-listenerSocket = socket(AF_INET, SOCK_STREAM)
-listenerSocket.bind(("", serverPort))
-listenerSocket.listen(1)
-#TODO: handle case for when serverPort is already in use:
-#
-# Kevins-MacBook-Pro:ns-group kevinliu$ python server.py 12345 auth/server.crt auth/server.key auth/client.crt 
-# Traceback (most recent call last):
-#   File "server.py", line 166, in <module>
-#     listenerSocket.bind(("", serverPort))
-#   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/socket.py", line 228, in meth
-#     return getattr(self._sock,name)(*args)
-# socket.error: [Errno 48] Address already in use
+try:
+  listenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  listenerSocket.bind(("", serverPort))
+  listenerSocket.listen(1)
+except socket.error as e:
+  if hasattr(e, 'errno'):
+    if e.errno == errno.EADDRINUSE:
+      print "Port " + str(serverPort) + " is already in use. Please use another port number."
+      exit()
+  print e
+  exit()
 
 
 socketToClient, addr = listenerSocket.accept()
