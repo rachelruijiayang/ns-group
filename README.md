@@ -5,15 +5,11 @@
 
 #### Creating and setting up certificates:
 The following instructions specify how to generate the client's private and public keys and certificate. To generate these for the server, replace ``client`` with ``server``.
-``openssl genrsa -out client.key 2048``: Generates the client's private key
-
-``openssl req -new -key client.key -out client.csr``: Generates a certificate request for the client. Follow the prompts.
-
-``openssl x509 -req -sha256 -days 365 -in client.csr -signkey client.key -out client.crt``: Client self-signs the requested certificate
-
-``openssl x509 -pubkey -noout < client.crt > clientpubkey.pem``: Extracts the client's public key from the certificate. Necessary for PyCrypto
-
-``rm *.csr``: Removes the now-unnecessary certificate request.
+- ``openssl genrsa -out client.key 2048``: Generates the client's private key
+- ``openssl req -new -key client.key -out client.csr``: Generates a certificate request for the client. Follow the prompts.
+- ``openssl x509 -req -sha256 -days 365 -in client.csr -signkey client.key -out client.crt``: Client self-signs the requested certificate
+- ``openssl x509 -pubkey -noout < client.crt > clientpubkey.pem``: Extracts the client's public key from the certificate. Necessary for PyCrypto
+- ``rm *.csr``: Removes the now-unnecessary certificate request.
 
 Reference: https://devcenter.heroku.com/articles/ssl-certificate-self
 
