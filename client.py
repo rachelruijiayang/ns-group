@@ -39,8 +39,8 @@ server_to_client:
 """
 
 if(len(sys.argv) != 7):
-    print "Usage: ./client <server's IP or hostname> <server port> <client certificate filename> " \
-        "<client private key filename> <server certificate filename> <client public key filename>"
+    print "Usage: ./client <server's IP or hostname> <server port> <client certificate file path> " \
+        "<client private key file path> <server certificate file path> <client public key file path>"
     exit()
 
 # Check server IP/hostname
@@ -205,7 +205,7 @@ def put(option, ssl_sock, filename, aes_key=""):
 	# Signature - encrypt the hash with client's RSA private key
 	signature = ckey.sign(plaintext_hash, '')
 
-	# Serialize data and send to server
+	# Serialize data into client_to_server pickle and send to server
 	ctos_pickle = pickle.dumps({
 		"action": "put",
 		"filename": filename,
@@ -226,7 +226,7 @@ def put(option, ssl_sock, filename, aes_key=""):
 		print "Error: " + filename + " could not be transferred"
 
 def get(option, ssl_sock, filename, aes_key=""):
-	# Send a request to the server asking for file
+	# Send a client_to_server request to the server asking for file
 	ctos_pickle = pickle.dumps({
 		"action": "get",
 		"filename": filename,
@@ -235,10 +235,10 @@ def get(option, ssl_sock, filename, aes_key=""):
 		})
 	helpers.send_message(ssl_sock, ctos_pickle)
 
-	# Receive file and corresponding hash from server
+	# Receive file and corresponding hash in server_to_client pickle from server
 	stoc_pickle = helpers.recv_message(ssl_sock)
 	if (stoc_pickle == None):
-		print "Error: " + filename + " was not retrieved."
+		print "Error: Connection to server lost. Exiting"
 		return
 	stoc = pickle.loads(stoc_pickle)
 	if (stoc["status"] != "success"):
@@ -277,8 +277,7 @@ def main():
 
 	# Connect to server
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
-
+	
 	try:
 		ssl_sock = ssl.wrap_socket(sock, certfile=ccert_fn, keyfile=ckey_fn, ca_certs=scert_fn, cert_reqs=ssl.CERT_REQUIRED)
 		ssl_sock.connect((server_ip, server_port))
