@@ -9,7 +9,7 @@ Ruijia Yang (ry2277)
 ### Installation
 
 #### Creating and setting up certificates:
-We have included some premade client and server keys/certificates in the auth folder, but you can also generate your own.
+We have included some premade client and server keys/certificates in the auth folder, but you can also generate your own in a directory of your choosing.
 
 The following instructions specify how to generate the client's private and public keys and certificate. To generate these for the server, replace ``client`` with ``server``.
 - ``openssl genrsa -out client.key 2048``: Generates the client's private key
@@ -40,7 +40,7 @@ In particular, client.py uses the pycrypto package, so whatever machine you run 
 Quick Run: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
 
 Alternatively:
-``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
+``python client.py <server's IP or hostname> <server port> <client certificate file path> <client private key filename> <server certificate filename> <client public key filename>``
 
 ``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
 
