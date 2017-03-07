@@ -20,8 +20,8 @@ If you are running the server on a Google VM and want to connect with a client t
 6. Click Create
 
 SSH into your Google Compute Engine VM. If it is a fresh VM (fresh Ubuntu 16.04 VMs will need this step), or if it doesn't have Python's pycrypto library, install it:
-- Install pip by running - ``$ sudo apt-get install python-pip``
-- Then install the pycrypto package with - ``$ pip install pycrypto``
+- Install pip by running - ``udo apt-get install python-pip``
+- Then install the pycrypto package with - ``pip install pycrypto``
 
 Also, make sure openssl is installed:
 - ``sudo apt-get install libssl-dev``
