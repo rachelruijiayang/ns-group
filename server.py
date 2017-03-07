@@ -7,7 +7,7 @@
 # 1) multiple clients being connected simultaneously
 # 2) client connecting, then user kills the client side (with "stop") command which kills the socket (which causes server
 #    to exit), and then client connecting again
-# TODO: wait for instructor response on whether current behavior is correct, or whether we need to support case #2
+# the instructor has confirmed that the behavior we implement is acceptable
 
 from socket import *
 import ssl
@@ -57,17 +57,21 @@ clientCertPath = sys.argv[4]
 
 #====================================================== CTRL+C handler
 
-def signal_handler(signal, frame):
+def mainThreadSignalHandler(signal, frame):
   print('\nYou pressed Ctrl+C! Exiting...')
+  keepMainThreadAlive = False
   listenerSocket.close()
-  try:
+
+  try: #in case a client has connected, then we need to stop that thread and close the socket
     myUserThread
     if myUserThread.isAlive():
       myUserThread.stop()
   except NameError:
     sys.exit(0)
+
   sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
+
+signal.signal(signal.SIGINT, mainThreadSignalHandler)
 
 
 
@@ -81,6 +85,8 @@ class userThread(threading.Thread):
 
   #call this function to stop the thread
   def stop(self):
+    global keepMainThreadAlive
+    keepMainThreadAlive = False #so the main thread exits, and the entire program exits
     self.mySocket.close()
     self._stop.set()
 
@@ -93,14 +99,16 @@ class userThread(threading.Thread):
       if(self.stopped()):
         return
     
+      print "checkpoint alpha"
       receivedMessage = recv_message(self.mySocket)
+      print "checkpoint bravo"
       if receivedMessage is None: #then that means the socket was closed on the client side
         self.stop()
         return
 
       unpickled_dict = pickle.loads(receivedMessage)
 
-       #we established our client-server protocol such that the client's message to the server will always be a dictionary
+      #we established our client-server protocol such that the client's message to the server will always be a dictionary
       #contanining these 4 fields
       action = unpickled_dict['action'] #either "get" or "put"
       filename = unpickled_dict['filename'] #this can be full path + filename, relative path + filename, or just the filename
@@ -183,11 +191,10 @@ listenerSocket.listen(1)
 socketToClient, addr = listenerSocket.accept()
 print 'Received incoming connection from ' + addr[0] + ':' + str(addr[1])
 
-##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
 try:
   sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
 except ssl.SSLError as e:
-  print "Error: Could not perform mutual authentication; invalid client or server certificate."
+  print "Error: Could not perform mutual authentication; at least one of the following is invalid: server certificate, server private key, client certificate"
   exit()
 except Exception as e:
   print "Exception occurred: " + str(e)
@@ -196,4 +203,10 @@ except Exception as e:
 
 #create a thread, give the thread the socket connection with the client, and run the thread
 myUserThread = userThread(sslSocketToClient)
+myUserThread.daemon = True
 myUserThread.start()
+
+
+keepMainThreadAlive = True
+while keepMainThreadAlive: #keep main thread alive until someone else sets keepMainThreadAlive=False
+  pass 
