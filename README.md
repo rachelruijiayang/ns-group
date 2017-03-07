@@ -18,13 +18,13 @@ Note: The commands above do not set up a password for encrypting the RSA keys.
 Reference: https://devcenter.heroku.com/articles/ssl-certificate-self
 
 ### Environment Setting
-In order to establish the connection with the server on Google VM, specific firewall rules need to be added for allowing the tcp port connection.The process is set as follow:
-- Choose "Compute Engine" in the VM
-- Choose "Networking" option
+If you are running the server on a Google VM and want to connect with a client that is running somewhere other than the VM that the server is running on, specific firewall rules need to be added to allow the TCP port connection. The process is:
+- Go to https://console.cloud.google.com and navigate to your project. On the hamburger menu in the top-left, choose "Networking" under the "Compute" section
 - Choose Firewall rules, click create new firewall rule 
-- In Allowed protocols and ports blank, enter "tcp" for all tcp port or tcp:xxxx for specific xxxx port
-- Set the IP range for this rule
-- Save
+- In the "Allowed protocols and ports" field, enter "tcp" to allow all TCP ports, or tcp:xxxx for a specific xxxx port
+- Under the "Source filter" dropdown, select "allow from any source" (or, you can instead designate an allowed IP range)
+- Give this rule a name in the "Name" field
+- Click Create
 
 From a fresh Ubuntu 16.04 VM on GCP:</br>
 Install pip by running - ``$ sudo apt-get install python-pip``</br>
