@@ -203,7 +203,6 @@ def put(option, ssl_sock, filename, aes_key=""):
 
 	# Signature - encrypt the hash with client's RSA private key
 	signature = ckey.sign(plaintext_hash, '')
-	print "type of signature is: " + str(type(signature))
 
 	# Serialize data and send to server
 	ctos_pickle = pickle.dumps({
@@ -216,9 +215,9 @@ def put(option, ssl_sock, filename, aes_key=""):
 
 	# get stoc from server
 	stoc_pickle = helpers.recv_message(ssl_sock)
-	if (stoc_pickle == None):
-		print "Error: " + filename + " could not be transferred"
-		return
+	if (stoc_pickle == ""):
+		print "Error: Connection to server lost. Exiting"
+		exit()
 	stoc = pickle.loads(stoc_pickle)
 	if (stoc["status"] == "success"):
 		print "transfer of " + filename + " complete"
@@ -298,7 +297,7 @@ def main():
 				exit(0)
 
 			if (len(action_string) == 3 or len(action_string) == 4):
-				filename = action_string[1]
+				filename = os.path.abspath(action_string[1])
 				encrypt_option = action_string[2]
 
 				# E option
@@ -328,9 +327,9 @@ def main():
 					else:
 						print "Invalid parameter \"" + encrypt_option +"\""
 				else: 
-					print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2.<stop>"
+					print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2. <stop>"
 			else:
-				print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2.<stop>"
+				print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2. <stop>"
 	except KeyboardInterrupt:
 		print "\nExiting client application."
 		ssl_sock.close()

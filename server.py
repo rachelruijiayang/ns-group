@@ -114,14 +114,20 @@ class userThread(threading.Thread):
       filename = unpickled_dict['filename'] #this can be full path + filename, relative path + filename, or just the filename
       text = unpickled_dict['text'] #this could be plaintext or IV+ciphertext
       signature = unpickled_dict['signature'] #SHA256 hash, then signed with client's RSA private key
+      status = 'failure'
+
+      filename = "/client_files" + filename
 
       if action != "put" and action != "get":
         #then the received message was invalid because action must be either "put" or "get". ignore the message.
         continue
 
       if action == "put":
-        basename = os.path.basename(filename) #if filename is "/foo/bar/text.txt", then basename is "text.txt"
+        #basename = os.path.basename(filename) #if filename is "/foo/bar/text.txt", then basename is "text.txt"  
         try:
+          if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+
           f = open(basename, 'wb')
           f.write(text)
           f.close()
@@ -131,11 +137,11 @@ class userThread(threading.Thread):
           f.close()
 
           status = 'success'
+        except OSError as exc: # Guard against race condition
+          status = 'failure'
         except IOError as e:
           #theoretically this shouldn't happen because we are writing the file to the same directory that the server is executing in, so there should be no permission problems
           status = 'failure'
-
-
 
         pickled_message = pickle.dumps({
           'status': status,
