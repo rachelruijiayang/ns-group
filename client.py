@@ -215,7 +215,7 @@ def put(option, ssl_sock, filename, aes_key=""):
 
 	# get stoc from server
 	stoc_pickle = helpers.recv_message(ssl_sock)
-	if (stoc_pickle == ""):
+	if (stoc_pickle == None):
 		print "Error: Connection to server lost. Exiting"
 		exit()
 	stoc = pickle.loads(stoc_pickle)

@@ -116,23 +116,23 @@ class userThread(threading.Thread):
       signature = unpickled_dict['signature'] #SHA256 hash, then signed with client's RSA private key
       status = 'failure'
 
-      filename = "/client_files" + filename
+      client_files_path = "client_files" + filename
 
       if action != "put" and action != "get":
         #then the received message was invalid because action must be either "put" or "get". ignore the message.
         continue
 
       if action == "put":
-        #basename = os.path.basename(filename) #if filename is "/foo/bar/text.txt", then basename is "text.txt"  
         try:
-          if not os.path.exists(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
+          if not os.path.exists(os.path.dirname(client_files_path)):
+            print "in here!"
+            os.makedirs(os.path.dirname(client_files_path))
 
-          f = open(basename, 'wb')
+          f = open(client_files_path, 'wb')
           f.write(text)
           f.close()
 
-          f = open(basename + '.sha256', 'wb')
+          f = open(client_files_path + '.sha256', 'wb')
           f.write(pickle.dumps(signature))
           f.close()
 
@@ -152,13 +152,11 @@ class userThread(threading.Thread):
 
       if action == "get":
         try:
-          #filename might be a full or relative path ("/foo/bar/file.txt" or "./subdirectory/file.txt"). the server will then
-          #try to access that. this may fail because we attempt to read something we don't have access to.
-          f = open(filename, 'rb')
+          f = open(client_files_path, 'rb')
           text = f.read()
           f.close()
 
-          f = open(filename + '.sha256', 'rb')
+          f = open(client_files_path + '.sha256', 'rb')
           signature = pickle.loads(f.read())
           f.close()
 
@@ -175,7 +173,7 @@ class userThread(threading.Thread):
           })
         send_message(self.mySocket, pickled_message)
 
-      print "Received action '" + action + "', filename '" + filename + "', resulting status is: " + status
+      print "Received action '" + action + "', client_files_path '" + client_files_path + "', resulting status is: " + status
       
 
 #====================================================== the main code
