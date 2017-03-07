@@ -40,17 +40,17 @@ In particular, client.py uses the pycrypto package, so whatever machine you run 
 Quick Run: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
 
 Alternatively:
-``python client.py <server's IP or hostname> <server port> <client certificate file path> <client private key filename> <server certificate filename> <client public key filename>``
+``python client.py <server's IP or hostname> <server port> <client certificate file path> <client private key file path> <server certificate file path> <client public key file path>``
 
-``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
+``python server.py <server port> <server certificate file path> <server private key file path> <client certificate file path>``
 
 where 
 - ``<server port>`` is a port number in the inclusive range [1024, 65535] to listen on
-- ``<server certificate filename>`` is the server's certificate file (for example, auth/server.crt)
-- ``<server private key filename>`` is the server's RSA private key file (for example, auth/server.key)
-- ``<client certificate filename>`` is the client's certificate file (for example, auth/client.crt)
-- ``<client private key filename>`` is the client's RSA private key file (for example, auth/client.key)
-- ``<client public key filename>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
+- ``<server certificate file path>`` is the server's certificate file (for example, auth/server.crt)
+- ``<server private key file path>`` is the server's RSA private key file (for example, auth/server.key)
+- ``<client certificate file path>`` is the client's certificate file (for example, auth/client.crt)
+- ``<client private key file path>`` is the client's RSA private key file (for example, auth/client.key)
+- ``<client public key file path>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
 
 From here, the program follows the assignment specs.
 

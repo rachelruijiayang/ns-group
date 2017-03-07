@@ -19,6 +19,7 @@ from Crypto import Random
 import random
 
 """
+Protocol: 
 client_to_server:
 {
 	"action": action,	# put or get
@@ -213,7 +214,7 @@ def put(option, ssl_sock, filename, aes_key=""):
 		})
 	helpers.send_message(ssl_sock, ctos_pickle) # helper function
 
-	# get stoc from server
+	# get server_to_client message from server
 	stoc_pickle = helpers.recv_message(ssl_sock)
 	if (stoc_pickle == None):
 		print "Error: Connection to server lost. Exiting"

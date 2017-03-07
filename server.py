@@ -24,7 +24,7 @@ import errno
 
 #if you run "python server.py 1555 auth/server.crt auth/server.key auth/client.crt", then sys.argv has 5 arguments: server.py is the 1st, 1555 is the 2nd, auth/server.crt is the 3rd, auth/server.key is the 4th, and auth/client.crt is the 5th
 if(len(sys.argv) != 5):
-  print "Invalid number of arguments. Invoke the server using: python server.py <port> <server certificate> <server private key> <client certificate>, where <port> is a port number in the inclusive range [1024, 65535], <server certificate> is the server's certificate file (for example, auth/server.crt), <server private key> is the server's RSA private key file (for example, auth/server.key), and <client certificate> is the client's certificate file (for example, auth/client.crt)"
+  print "Invalid number of arguments. Invoke the server using: python server.py <port> <server certificate> <server private key> <client certificate>, where <port> is a port number in the inclusive range [1024, 65535], <server certificate> is the server's certificate file path (for example, auth/server.crt), <server private key> is the server's RSA private key file path (for example, auth/server.key), and <client certificate> is the client's certificate file path (for example, auth/client.crt)"
 
 if(not sys.argv[1].isdigit()):
   print 'Port number must contain only digits 0-9'
