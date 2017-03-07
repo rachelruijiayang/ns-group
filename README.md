@@ -11,6 +11,8 @@ The following instructions specify how to generate the client's private and publ
 - ``openssl x509 -pubkey -noout < client.crt > clientpubkey.pem``: Extracts the client's public key from the certificate. Necessary for PyCrypto
 - ``rm *.csr``: Removes the now-unnecessary certificate request.
 
+Note: The commands above do not set up a password for encrypting the RSA keys.
+
 Reference: https://devcenter.heroku.com/articles/ssl-certificate-self
 
 ### Environment Setting
