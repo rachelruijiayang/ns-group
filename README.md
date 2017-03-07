@@ -46,4 +46,4 @@ where
 - ``<client private key filename>`` is the client's RSA private key file (for example, auth/client.key)
 - ``<client public key filename>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
 
-The program then behaves as specified in the project instructions.
+The program then behaves as specified in the project specs.
