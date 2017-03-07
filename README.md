@@ -1,4 +1,9 @@
 # COMS 4180 Group 7
+Jianpu Ma (jm4437)
+Kevin Liu (kll2146)
+Ilan Buchwald (ib2348)
+Ruijia Yang (ry2277)
+
 ## Installation/User Guide
 
 ### Installation
