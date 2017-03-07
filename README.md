@@ -9,7 +9,7 @@ Run the following command, replacing \<key_name> and \<cert_name> with the desir
 - Answer the prompts given by OpenSSL.
 
 ### Environment Setting
-In order to establish the connection with the server on the Google VM, specific firewall rules in the Google Cloud Platform need to be modified for allowing the tcp port connection. The process is set as follow:
+In order to establish the connection with the server on Google VM, specific firewall rules need to be added for allowing the tcp port connection.The process is set as follow:
 - Choose "Compute Engine" in the VM
 - Choose "Networking" option
 - Choose Firewall rules, click create new firewall rule 
