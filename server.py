@@ -99,9 +99,7 @@ class userThread(threading.Thread):
       if(self.stopped()):
         return
     
-      print "checkpoint alpha"
       receivedMessage = recv_message(self.mySocket)
-      print "checkpoint bravo"
       if receivedMessage is None: #then that means the socket was closed on the client side
         self.stop()
         return
