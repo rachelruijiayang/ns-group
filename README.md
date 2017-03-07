@@ -24,12 +24,12 @@ Reference: https://devcenter.heroku.com/articles/ssl-certificate-self
 
 ### Environment Setting
 If you are running the server on a Google VM and want to connect with a client that is running somewhere other than the VM that the server is running on, specific firewall rules need to be added to allow the TCP port connection. The process is:
-- Go to https://console.cloud.google.com and navigate to your project. On the hamburger menu in the top-left, choose "Networking" under the "Compute" section
-- Choose Firewall rules, click create new firewall rule 
-- In the "Allowed protocols and ports" field, enter "tcp" to allow all TCP ports, or tcp:xxxx for a specific xxxx port
-- Under the "Source filter" dropdown, select "allow from any source" (or, you can instead designate an allowed IP range)
-- Give this rule a name in the "Name" field
-- Click Create
+1. Go to https://console.cloud.google.com and navigate to your project. On the hamburger menu in the top-left, choose "Networking" under the "Compute" section
+2. Choose Firewall rules, click create new firewall rule 
+3. In the "Allowed protocols and ports" field, enter "tcp" to allow all TCP ports, or tcp:xxxx for a specific xxxx port
+4. Under the "Source filter" dropdown, select "allow from any source" (or, you can instead designate an allowed IP range)
+5. Give this rule a name in the "Name" field
+6. Click Create
 
 SSH into your Google Compute Engine VM. If it is a fresh VM (fresh Ubuntu 16.04 VMs will need this step), or if it doesn't have Python's pycrypto library, install it:</br>
 - Install pip by running - ``$ sudo apt-get install python-pip``</br>
@@ -41,8 +41,8 @@ Quick Run: Run one of the Makefile test command pairs (``make s1`` and ``make c1
 
 Alternatively:
 
-``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
-``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
+1. ``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
+2. ``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
 
 
 
