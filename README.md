@@ -27,7 +27,7 @@ In order to establish the connection with the server on Google VM, specific fire
 - Save
 
 ### Run
-Client: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.
+Client: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
 
 Alternatively:
-``"Usage: ./client <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>"``
+``./client <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
