@@ -23,6 +23,7 @@ In order to establish the connection with the server on Google VM, specific fire
 - In Allowed protocols and ports blank, enter "tcp" for all tcp port or tcp:xxxx for specific xxxx port
 - Set the IP range for this rule
 - Save
+
 From a fresh Ubuntu 16.04 VM on GCP:</br>
 Install pip by running - ``$ sudo apt-get install python-pip``</br>
 Then install the pycrypto package with - ``$ pip install pycrypto``
