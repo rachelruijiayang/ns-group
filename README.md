@@ -31,9 +31,10 @@ If you are running the server on a Google VM and want to connect with a client t
 - Give this rule a name in the "Name" field
 - Click Create
 
-From a fresh Ubuntu 16.04 VM on GCP:</br>
-Install pip by running - ``$ sudo apt-get install python-pip``</br>
-Then install the pycrypto package with - ``$ pip install pycrypto``
+SSH into your Google Compute Engine VM. If it is a fresh VM (fresh Ubuntu 16.04 VMs will need this step), or if it doesn't have Python's pycrypto library, install it:</br>
+- Install pip by running - ``$ sudo apt-get install python-pip``</br>
+- Then install the pycrypto package with - ``$ pip install pycrypto``
+In particular, client.py uses the pycrypto package, so whatever machine you run the client on, it needs to have pycrypto installed.
 
 ### Run
 Quick Run: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
