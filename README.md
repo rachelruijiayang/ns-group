@@ -4,6 +4,8 @@
 ### Installation
 
 #### Creating and setting up certificates:
+We have included some premade client and server keys/certificates in the auth folder, but you can also generate your own.
+
 The following instructions specify how to generate the client's private and public keys and certificate. To generate these for the server, replace ``client`` with ``server``.
 - ``openssl genrsa -out client.key 2048``: Generates the client's private key
 - ``openssl req -new -key client.key -out client.csr``: Generates a certificate request for the client. Follow the prompts.
@@ -32,4 +34,14 @@ Then install the pycrypto package with - ``$ pip install pycrypto``
 Client: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
 
 Alternatively:
-``./client <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
+``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
+
+``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
+
+where 
+- ``<server port>`` is a port number in the inclusive range [1024, 65535] to listen on
+- ``<server certificate filename>`` is the server's certificate file (for example, auth/server.crt)
+- ``<server private key filename>`` is the server's RSA private key file (for example, auth/server.key)
+- ``<client certificate filename>`` is the client's certificate file (for example, auth/client.crt)
+- ``<client private key filename>`` is the client's RSA private key file (for example, auth/client.key)
+- ``<client public key filename>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
