@@ -124,7 +124,6 @@ class userThread(threading.Thread):
       if action == "put":
         try:
           if not os.path.exists(os.path.dirname(client_files_path)):
-            print "in here!"
             os.makedirs(os.path.dirname(client_files_path))
 
           f = open(client_files_path, 'wb')
