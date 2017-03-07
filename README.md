@@ -24,6 +24,7 @@ Reference: https://devcenter.heroku.com/articles/ssl-certificate-self
 
 ### Environment Setting
 If you are running the server on a Google VM and want to connect with a client that is running somewhere other than the VM that the server is running on, specific firewall rules need to be added to allow the TCP port connection. The process is:
+
 1. Go to https://console.cloud.google.com and navigate to your project. On the hamburger menu in the top-left, choose "Networking" under the "Compute" section
 2. Choose Firewall rules, click create new firewall rule 
 3. In the "Allowed protocols and ports" field, enter "tcp" to allow all TCP ports, or tcp:xxxx for a specific xxxx port
