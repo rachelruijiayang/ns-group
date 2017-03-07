@@ -187,11 +187,10 @@ print 'Received incoming connection from ' + addr[0] + ':' + str(addr[1])
 try:
   sslSocketToClient = ssl.wrap_socket(socketToClient, server_side=True, certfile=serverCertPath, keyfile=serverPrivKeyPath, ca_certs=clientCertPath, cert_reqs=ssl.CERT_REQUIRED)
 except ssl.SSLError as e:
-  print "SSLError occurred: " + e.reason
+  print "Error: Could not perform mutual authentication; invalid client or server certificate."
   exit()
 except Exception as e:
-  print "Exception occurred: "
-  print e
+  print "Exception occurred: " + str(e)
   exit()
 
 

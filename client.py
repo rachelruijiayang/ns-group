@@ -72,7 +72,7 @@ ckey_fn = sys.argv[4]
 try:
 	ckey_f = open(ckey_fn, 'rb')
 	ckey = RSA.importKey(ckey_f.read())
-except:
+except Exception as e:
 	print "Could not import client's RSA private key in file " + ckey_fn
 	exit()
 finally:
@@ -92,7 +92,7 @@ cpubkey_fn = sys.argv[6]
 try:
 	cpubkey_f = open(cpubkey_fn, 'rb')
 	cpubkey = RSA.importKey(cpubkey_f.read())
-except:
+except Exception as e:
 	print "Could not import client's RSA public key in file " + cpubkey_fn
 	exit()
 finally:
@@ -107,16 +107,6 @@ def generateAesKey(pw):
 	random.seed(pw)
 
 	return struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32)) + struct.pack('>I', random.getrandbits(32))
-
-
-	# shift = AES.block_size*8 - 1;
-	#num = random.getrandbits(shift) + (1 << shift)
-	# num = random.randrange(1 << 127, 1 << 128)
-	#print "AES BLOCK SIZE: " + str(AES.block_size)
-	#print "SIZE OF NUM: " + str(sys.getsizeof(num))
-	#return str(random.getrandbits(AES.block_size))
-	#return str(num)	# TODO
-	#return "temporaryaeskey!"
 
 def pad(msg):
 	return msg + (AES.block_size - len(msg) % AES.block_size) * chr(AES.block_size - len(msg) % AES.block_size)
@@ -164,7 +154,7 @@ def readFileSafe(filename, option='rb'):
 		f = open(filename, option)
 		try:
 			read_contents = f.read()
-		except:
+		except IOError as e:
 			print "Could not read file " + filename
 		finally:
 			f.close()
@@ -178,7 +168,7 @@ def writeFileSafe(filename, write_contents, option='wb'):
 	try:
 		f.write(write_contents)
 		success = 1
-	except:
+	except IOError as e:
 		print "Could not write file " + filename
 	finally:
 		f.close()
@@ -281,53 +271,63 @@ def main():
 
 	# Connect to server
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	ssl_sock = ssl.wrap_socket(sock, certfile=ccert_fn, keyfile=ckey_fn, ca_certs=scert_fn, cert_reqs=ssl.CERT_REQUIRED)
-	ssl_sock.connect((server_ip, server_port))
+	##TODO: what if serverCertPath, serverPrivKeyPath, clientCertPath are existing files, but not of the valid format? for example, what if they are images? should handle this case
+
+	try:
+		ssl_sock = ssl.wrap_socket(sock, certfile=ccert_fn, keyfile=ckey_fn, ca_certs=scert_fn, cert_reqs=ssl.CERT_REQUIRED)
+		ssl_sock.connect((server_ip, server_port))
+	except ssl.SSLError as e:
+		print "Error: Could not perform mutual authentication; invalid client or server certificate."
+		exit()
 
 	# Command-line application
-	while (ssl_sock):
-		action_string = raw_input("> ").split(' ')
-		action = action_string[0]
+	try:
+		while (ssl_sock):
+			action_string = raw_input("> ").split(' ')
+			action = action_string[0]
 
-		# stop
-		if (action == "stop" and len(action_string) == 1):
-			ssl_sock.close()
-			exit(0)
+			# stop
+			if (action == "stop" and len(action_string) == 1):
+				ssl_sock.close()
+				exit(0)
 
-		if (len(action_string) == 3 or len(action_string) == 4):
-			filename = action_string[1]
-			encrypt_option = action_string[2]
+			if (len(action_string) == 3 or len(action_string) == 4):
+				filename = action_string[1]
+				encrypt_option = action_string[2]
 
-			# E option
-			if (encrypt_option == "E"):
-				if (len(action_string) != 4):
-					print "Error: Missing parameters, \"E\" requires a password"
-					continue
-				aes_key = generateAesKey(action_string[3])
-				if (aes_key == 0):
-					print "Error: E mode password must be eight characters"
-					continue
-
-			# put
-			if (action == "put"):
+				# E option
 				if (encrypt_option == "E"):
-					put("E", ssl_sock, filename, aes_key)
-				elif (encrypt_option == "N"):
-					put("N", ssl_sock, filename)
-				else:
-					print "Invalid parameter \"" + encrypt_option +"\""
-			# get
-			elif (action == "get"):
-				if (encrypt_option == "E"):
-					get("E", ssl_sock, filename, aes_key)
-				elif (encrypt_option == "N"):
-					get("N", ssl_sock, filename)
-				else:
-					print "Invalid parameter \"" + encrypt_option +"\""
-			else: 
-				print "Invalid commands, options are \"get\" \"put\" \"stop\""
-		else:
-			print "Invalid commands, options are \"get\" \"put\" \"stop\""
+					if (len(action_string) != 4):
+						print "Error: Missing parameters, \"E\" requires a password"
+						continue
+					aes_key = generateAesKey(action_string[3])
+					if (aes_key == 0):
+						print "Error: E mode password must be eight characters"
+						continue
+
+				# put
+				if (action == "put"):
+					if (encrypt_option == "E"):
+						put("E", ssl_sock, filename, aes_key)
+					elif (encrypt_option == "N"):
+						put("N", ssl_sock, filename)
+					else:
+						print "Invalid parameter \"" + encrypt_option +"\""
+				# get
+				elif (action == "get"):
+					if (encrypt_option == "E"):
+						get("E", ssl_sock, filename, aes_key)
+					elif (encrypt_option == "N"):
+						get("N", ssl_sock, filename)
+					else:
+						print "Invalid parameter \"" + encrypt_option +"\""
+				else: 
+					print "Usage: <put/get> <filename> <E/N> <password, if E (encrypted mode) chosen> OR <stop>"
+			else:
+				print "Usage: <put/get> <filename> <E/N> <password, if E (encrypted mode) chosen> OR <stop>"
+	except KeyboardInterrupt:
+		print "\nExiting client application."
+		ssl_sock.close()
 
 if __name__ == "__main__":
 	main()
