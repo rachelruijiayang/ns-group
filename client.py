@@ -258,6 +258,9 @@ def get(option, ssl_sock, filename, aes_key=""):
 	#cpubkey = extractPubKeyFromCert(ccert_fn)
 	print "signature is of type: " + str(type(stoc["signature"]))
 	if (cpubkey.verify(plaintext_hash, stoc["signature"])==1):
+		f = open(filename, 'wb')
+		f.write(plaintext)
+		f.close()
 		print "retrieval of " + filename + " complete"
 	else:
 		if (option == "N"):
@@ -279,7 +282,7 @@ def main():
 		ssl_sock = ssl.wrap_socket(sock, certfile=ccert_fn, keyfile=ckey_fn, ca_certs=scert_fn, cert_reqs=ssl.CERT_REQUIRED)
 		ssl_sock.connect((server_ip, server_port))
 	except ssl.SSLError as ssl_e:
-		print "Error: Could not perform mutual authentication; invalid client or server certificate."
+		print "Error: Could not perform mutual authentication; at least one of the following is invalid: server certificate, server private key, client certificate"
 		exit()
 	except Exception as e:
 		print "Error: Could not connect to server " + server_ip + " on port " + str(server_port) + ". Are you sure the server is running?"
