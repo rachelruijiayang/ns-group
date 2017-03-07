@@ -39,7 +39,7 @@ server_to_client:
 
 if(len(sys.argv) != 7):
     print "Usage: ./client <server's IP or hostname> <server port> <client certificate filename> " \
-        "<client private key filename> <server certificate filename>"
+        "<client private key filename> <server certificate filename> <client public key filename>"
     exit()
 
 # Check server IP/hostname
@@ -261,7 +261,10 @@ def get(option, ssl_sock, filename, aes_key=""):
 	if (cpubkey.verify(plaintext_hash, stoc["signature"])==1):
 		print "retrieval of " + filename + " complete"
 	else:
-		print "Error: Computed hash of " + filename + " does not match retrieved hash"
+		if (option == "N"):
+			print "Error: Computed hash of " + filename + " does not match retrieved hash. Decryption failed."
+		elif (option == "E"):
+			print "Error: Computed hash of " + filename + " does not match retrieved hash. Decryption failed. Are you sure file was encrypted?"
 
 
 ################################################################################
@@ -276,8 +279,11 @@ def main():
 	try:
 		ssl_sock = ssl.wrap_socket(sock, certfile=ccert_fn, keyfile=ckey_fn, ca_certs=scert_fn, cert_reqs=ssl.CERT_REQUIRED)
 		ssl_sock.connect((server_ip, server_port))
-	except ssl.SSLError as e:
+	except ssl.SSLError as ssl_e:
 		print "Error: Could not perform mutual authentication; invalid client or server certificate."
+		exit()
+	except Exception as e:
+		print "Error: Could not connect to server " + server_ip + " on port " + str(server_port) + ". Are you sure the server is running?"
 		exit()
 
 	# Command-line application
@@ -322,9 +328,9 @@ def main():
 					else:
 						print "Invalid parameter \"" + encrypt_option +"\""
 				else: 
-					print "Usage: <put/get> <filename> <E/N> <password, if E (encrypted mode) chosen> OR <stop>"
+					print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2.<stop>"
 			else:
-				print "Usage: <put/get> <filename> <E/N> <password, if E (encrypted mode) chosen> OR <stop>"
+				print "Usage:\n1. <put/get> <filename> <E/N> <password (if E mode)>\n2.<stop>"
 	except KeyboardInterrupt:
 		print "\nExiting client application."
 		ssl_sock.close()
