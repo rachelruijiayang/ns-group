@@ -37,12 +37,14 @@ SSH into your Google Compute Engine VM. If it is a fresh VM (fresh Ubuntu 16.04 
 In particular, client.py uses the pycrypto package, so whatever machine you run the client on, it needs to have pycrypto installed.
 
 ### Run
-Quick Run: Run one of the Makefile test command pairs (``make c1`` and ``make s1``, ``make c2`` and ``make s2``, etc.)
+Quick Run: Run one of the Makefile test command pairs (``make s1`` and ``make c1``, ``make s2`` and ``make c2``, etc.)
 
 Alternatively:
-``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
 
 ``python server.py <server port> <server certificate filename> <server private key filename> <client certificate filename>``
+``python client.py <server's IP or hostname> <server port> <client certificate filename> <client private key filename> <server certificate filename> <client public key filename>``
+
+
 
 where 
 - ``<server port>`` is a port number in the inclusive range [1024, 65535] to listen on
@@ -53,3 +55,7 @@ where
 - ``<client public key filename>`` is the client's RSA public key file (for example, auth/clientpubkey.key)
 
 The program then behaves as specified in the project specs.
+
+Note: you should start the server before starting the client. If you start the client first and the server isn't running, the client gives an error message and exits gracefully. 
+
+To kill either the server or client, you can hit CTRL+C on the terminal. If the client is currently connected to the server and you exit the client (either by entering the "stop" command or hitting CTRL+C), the client exits and closes the socket on its end. This causes the server to immediately exit, as it detects that the socket was closed on the remote (client) side. If the client is currently connected to the server and you exit the server (by hitting CTRL+C), the client side still waits for user input. As soon as the user enters a valid get/put command (if the user enters "stop", the client exits, of course), the client detects that the socket was closed on the remote (server) side, and the client exits. 
