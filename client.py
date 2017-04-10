@@ -157,7 +157,7 @@ def readFileSafe(filename, option='rb'):
 			f = open(filename, option)
 			read_contents = f.read()
 		except IOError as e:
-			print "Could not read file " + filename
+			print "File " + filename + " could not be transferred"
 		finally:
 			try:
 				f #check that f exists
@@ -166,7 +166,7 @@ def readFileSafe(filename, option='rb'):
 				return None
 
 	else:
-		print "File " + filename + " does not exist"
+		print "File " + filename + " could not be transferred"
 	return read_contents
 
 def writeFileSafe(filename, write_contents, option='wb'):
