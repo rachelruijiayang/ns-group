@@ -212,13 +212,13 @@ def put(option, ssl_sock, filename, aes_key=""):
 	signature = ckey.sign(plaintext_hash, '')
 
 	# Serialize data into client_to_server json and send to server
-	print "filename is " + filename
-	print "text is " + str(text)
-	print "signature is " + str(signature[0])
-	foobar = json.dumps(text, ensure_ascii=False)
-	print "foobar is " + foobar
-	loaded_foobar = json.loads(foobar)
-	print "loaded_foobar is " + str(loaded_foobar)
+	# print "filename is " + filename
+	# print "text is " + str(text)
+	# print "signature is " + str(signature[0])
+	# foobar = json.dumps(text, ensure_ascii=False)
+	# print "foobar is " + foobar
+	# loaded_foobar = json.loads(foobar)
+	# print "loaded_foobar is " + str(loaded_foobar)
 	ctos_json = json.dumps({
 		"action": "put",
 		"filename": filename,
