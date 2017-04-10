@@ -11,7 +11,7 @@
 
 import socket
 import ssl
-import pickle
+import json
 import signal
 import sys
 import threading
@@ -105,14 +105,14 @@ class userThread(threading.Thread):
         self.stop()
         return
 
-      unpickled_dict = pickle.loads(receivedMessage)
+      unjsond_dict = json.loads(receivedMessage)
 
       #we established our client-server protocol such that the client's message to the server will always be a dictionary
       #contanining these 4 fields
-      action = unpickled_dict['action'] #either "get" or "put"
-      filename = unpickled_dict['filename'] #this can be full path + filename, relative path + filename, or just the filename
-      text = unpickled_dict['text'] #this could be plaintext or IV+ciphertext
-      signature = unpickled_dict['signature'] #SHA256 hash, then signed with client's RSA private key
+      action = unjsond_dict['action'] #either "get" or "put"
+      filename = unjsond_dict['filename'] #this can be full path + filename, relative path + filename, or just the filename
+      text = unjsond_dict['text'] #this could be plaintext or IV+ciphertext
+      signature = unjsond_dict['signature'] #SHA256 hash, then signed with client's RSA private key
       status = 'failure'
 
       client_files_path = "client_files" + filename
@@ -126,27 +126,31 @@ class userThread(threading.Thread):
           if not os.path.exists(os.path.dirname(client_files_path)):
             os.makedirs(os.path.dirname(client_files_path))
 
-          f = open(client_files_path, 'wb')
-          f.write(text)
-          f.close()
+          if client_files_path[-7:] == '.sha256':
+            status = 'failure'
+          else:
+            f = open(client_files_path, 'wb')
+            f.write(text)
+            f.close()
 
-          f = open(client_files_path + '.sha256', 'wb')
-          f.write(pickle.dumps(signature))
-          f.close()
+            f = open(client_files_path + '.sha256', 'wb')
+            f.write(json.dumps(signature))
+            f.close()
 
-          status = 'success'
+            status = 'success'
         except OSError as exc: # Guard against race condition
+          print exc
           status = 'failure'
         except IOError as e:
           #theoretically this shouldn't happen because we are writing the file to the same directory that the server is executing in, so there should be no permission problems
           status = 'failure'
 
-        pickled_message = pickle.dumps({
+        jsond_message = json.dumps({
           'status': status,
           'text': None,
           'signature': None
           })
-        send_message(self.mySocket, pickled_message)
+        send_message(self.mySocket, jsond_message)
 
       if action == "get":
         try:
@@ -155,7 +159,7 @@ class userThread(threading.Thread):
           f.close()
 
           f = open(client_files_path + '.sha256', 'rb')
-          signature = pickle.loads(f.read())
+          signature = json.loads(f.read())
           f.close()
 
           status = 'success'
@@ -164,12 +168,12 @@ class userThread(threading.Thread):
           text = None,
           signature = None
 
-        pickled_message = pickle.dumps({
+        jsond_message = json.dumps({
           'status': status,
           'text': text,
           'signature': signature
           })
-        send_message(self.mySocket, pickled_message)
+        send_message(self.mySocket, jsond_message)
 
       print "Received action '" + action + "', client_files_path '" + client_files_path + "', resulting status is: " + status
       
