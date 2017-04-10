@@ -1,11 +1,12 @@
-#!/usr/bin/env python2
+#usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 # COMS W4180 - Group 7
 
 # General
-import sys, os, pickle
+import sys, os, json
 import helpers
+import base64
 
 # Sockets, TLS/SSL
 import socket, ssl
@@ -152,13 +153,18 @@ def decryptAesCbc(aes_key, iv_ciphertext):
 def readFileSafe(filename, option='rb'):
 	read_contents = None
 	if (os.path.isfile(filename)):
-		f = open(filename, option)
 		try:
+			f = open(filename, option)
 			read_contents = f.read()
 		except IOError as e:
 			print "Could not read file " + filename
 		finally:
-			f.close()
+			try:
+				f #check that f exists
+				f.close()
+			except NameError:
+				return None
+
 	else:
 		print "File " + filename + " does not exist"
 	return read_contents
@@ -188,6 +194,12 @@ def sha256Hash(text):
 # Application actions
 ################################################################################
 def put(option, ssl_sock, filename, aes_key=""):
+	#check if the filename's last 7 characters equals '.sha256'. if so, disallow it, because
+	#we don't want to allow the client to overwrite our .sha256 files on the server side
+	if filename[-7:] == '.sha256':
+		print 'You are not allowed to put a file whose filename ends in .sha256 on the server, because that file extension is reserved.'
+		return
+
 	# Open and read file
 	plaintext = readFileSafe(filename, 'rb')
 	if (plaintext == None):
@@ -205,21 +217,21 @@ def put(option, ssl_sock, filename, aes_key=""):
 	# Signature - encrypt the hash with client's RSA private key
 	signature = ckey.sign(plaintext_hash, '')
 
-	# Serialize data into client_to_server pickle and send to server
-	ctos_pickle = pickle.dumps({
+	# Serialize data into client_to_server json and send to server
+	ctos_json = json.dumps({
 		"action": "put",
 		"filename": filename,
-		"text": text,
+		"text": text.encode('base64'),
 		"signature": signature
 		})
-	helpers.send_message(ssl_sock, ctos_pickle) # helper function
+	helpers.send_message(ssl_sock, ctos_json) # helper function
 
 	# get server_to_client message from server
-	stoc_pickle = helpers.recv_message(ssl_sock)
-	if (stoc_pickle == None):
+	stoc_json = helpers.recv_message(ssl_sock)
+	if (stoc_json == None):
 		print "Error: Connection to server lost. Exiting"
 		exit()
-	stoc = pickle.loads(stoc_pickle)
+	stoc = json.loads(stoc_json)
 	if (stoc["status"] == "success"):
 		print "transfer of " + filename + " complete"
 	else:
@@ -227,37 +239,47 @@ def put(option, ssl_sock, filename, aes_key=""):
 
 def get(option, ssl_sock, filename, aes_key=""):
 	# Send a client_to_server request to the server asking for file
-	ctos_pickle = pickle.dumps({
+	ctos_json = json.dumps({
 		"action": "get",
 		"filename": filename,
 		"text": None,
 		"signature": None
 		})
-	helpers.send_message(ssl_sock, ctos_pickle)
+	helpers.send_message(ssl_sock, ctos_json)
 
-	# Receive file and corresponding hash in server_to_client pickle from server
-	stoc_pickle = helpers.recv_message(ssl_sock)
-	if (stoc_pickle == None):
+	# Receive file and corresponding hash in server_to_client json from server
+	stoc_json = helpers.recv_message(ssl_sock)
+	if (stoc_json == None):
 		print "Error: Connection to server lost. Exiting"
-		return
-	stoc = pickle.loads(stoc_pickle)
+		exit()
+	stoc = json.loads(stoc_json)
 	if (stoc["status"] != "success"):
 		print "Error: " + filename + " was not retrieved."
 		return
 
+	binaryText = stoc["text"].decode('base64')
+
 	# Option-specific
 	if (option == "E"):
 		# AES encryption
-		plaintext = decryptAesCbc(aes_key, stoc["text"])
+		try:
+			plaintext = decryptAesCbc(aes_key, binaryText)
+		except ValueError as e:
+			#from the assignment specs:
+			# "If the client attempts to decrypt a file that was not encrypted (detected because the call to AES-CBC will 
+			# return an error message), no file will be written and the client will display a message indicating decryption 
+			# failed then display the prompt again."
+			print "Error: " + filename + " was not retrieved. It's possible that you tried to 'get E' a file that you put on the server without encryption, with 'put N'"
+			return 
 	else:	# option == N
-		plaintext = stoc["text"]
-
+		plaintext = binaryText
+		
 	# Compute the sha256 hash of the plaintext file
 	plaintext_hash = sha256Hash(plaintext)
 
 	# Use client's public key to decrypt the hash and compare the computed hash to the received hash
 	#cpubkey = extractPubKeyFromCert(ccert_fn)
-	print "signature is of type: " + str(type(stoc["signature"]))
+	# print "signature is of type: " + str(type(stoc["signature"]))
 	if (cpubkey.verify(plaintext_hash, stoc["signature"])==1):
 		f = open(filename, 'wb')
 		f.write(plaintext)
@@ -265,7 +287,7 @@ def get(option, ssl_sock, filename, aes_key=""):
 		print "retrieval of " + filename + " complete"
 	else:
 		if (option == "N"):
-			print "Error: Computed hash of " + filename + " does not match retrieved hash. Decryption failed."
+			print "Error: Computed hash of " + filename + " does not match retrieved hash."
 		elif (option == "E"):
 			print "Error: Computed hash of " + filename + " does not match retrieved hash. Decryption failed. Are you sure file was encrypted?"
 

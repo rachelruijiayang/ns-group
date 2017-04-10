@@ -60,4 +60,10 @@ Note: you should start the server before starting the client. If you start the c
 
 Note: All files sent by the client will be put into the simulated directory structure under client_files, which is located in the same directory that the server is run in. Clients can specify absolute or relative paths for the files they 'put' or 'get'. Both will be converted into the absolute path. Then, the file the client 'put's or 'get's and its absolute path will be sent to the server, where the file will be located inside the simulated directory structure under client_files/[absolute path provided by client]. In summary, when a client 'put's or 'get's files, it does so within a simulated directory structuring mirroring the directory structure of its own system.
 
+Note: In the directory you run the server in, ensure that there is no file named "client_files", because the server uses "client_files" as the directory name. 
+
 Note: To kill either the server or client, you can hit CTRL+C on the terminal. If the client is currently connected to the server and you exit the client (either by entering the "stop" command or hitting CTRL+C), the client exits and closes the socket on its end. This causes the server to immediately exit, as it detects that the socket was closed on the remote (client) side. If the client is currently connected to the server and you exit the server (by hitting CTRL+C), the client side still waits for user input. As soon as the user enters a valid get/put command (if the user enters "stop", the client exits, of course), the client detects that the socket was closed on the remote (server) side, and the client exits. 
+
+Note: When you "put" a file from the client to the server, the filename is not allowed to end in .sha256 because that is a reserved extension. In particular, on the client if you tried to do "put foo N" and then "put foo.sha256 N", the first command would create both "foo" and "foo.sha256" (the signature) on the server, and the second command would overwrite the "foo.sha256" signature file, which we don't want to occur. Therefore, we don't allow the second command. 
+
+
