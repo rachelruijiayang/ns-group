@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 # COMS W4180 - Group 7
@@ -6,6 +6,7 @@
 # General
 import sys, os, json
 import helpers
+import base64
 
 # Sockets, TLS/SSL
 import socket, ssl
@@ -222,7 +223,7 @@ def put(option, ssl_sock, filename, aes_key=""):
 	ctos_json = json.dumps({
 		"action": "put",
 		"filename": filename,
-		"text": text,
+		"text": text.encode('base64'),
 		"signature": signature
 		})
 	helpers.send_message(ssl_sock, ctos_json) # helper function
@@ -258,11 +259,13 @@ def get(option, ssl_sock, filename, aes_key=""):
 		print "Error: " + filename + " was not retrieved."
 		return
 
+	binaryText = stoc["text"].decode('base64')
+
 	# Option-specific
 	if (option == "E"):
 		# AES encryption
 		try:
-			plaintext = decryptAesCbc(aes_key, stoc["text"])
+			plaintext = decryptAesCbc(aes_key, binaryText)
 		except ValueError as e:
 			#from the assignment specs:
 			# "If the client attempts to decrypt a file that was not encrypted (detected because the call to AES-CBC will 
@@ -271,8 +274,8 @@ def get(option, ssl_sock, filename, aes_key=""):
 			print "Error: " + filename + " was not retrieved. It's possible that you tried to 'get E' a file that you put on the server without encryption, with 'put N'"
 			return 
 	else:	# option == N
-		plaintext = stoc["text"]
-
+		plaintext = binaryText
+		
 	# Compute the sha256 hash of the plaintext file
 	plaintext_hash = sha256Hash(plaintext)
 

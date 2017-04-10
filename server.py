@@ -18,6 +18,7 @@ import threading
 from helpers import *
 import os
 import errno
+import base64
 
 
 #====================================================== get command line arguments and validate them
