@@ -153,13 +153,18 @@ def decryptAesCbc(aes_key, iv_ciphertext):
 def readFileSafe(filename, option='rb'):
 	read_contents = None
 	if (os.path.isfile(filename)):
-		f = open(filename, option)
 		try:
+			f = open(filename, option)
 			read_contents = f.read()
 		except IOError as e:
 			print "Could not read file " + filename
 		finally:
-			f.close()
+			try:
+				f #check that f exists
+				f.close()
+			except NameError:
+				return None
+
 	else:
 		print "File " + filename + " does not exist"
 	return read_contents
@@ -213,13 +218,6 @@ def put(option, ssl_sock, filename, aes_key=""):
 	signature = ckey.sign(plaintext_hash, '')
 
 	# Serialize data into client_to_server json and send to server
-	# print "filename is " + filename
-	# print "text is " + str(text)
-	# print "signature is " + str(signature[0])
-	# foobar = json.dumps(text, ensure_ascii=False)
-	# print "foobar is " + foobar
-	# loaded_foobar = json.loads(foobar)
-	# print "loaded_foobar is " + str(loaded_foobar)
 	ctos_json = json.dumps({
 		"action": "put",
 		"filename": filename,

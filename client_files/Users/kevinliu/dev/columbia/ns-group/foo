@@ -1,9 +1,0 @@
-csubprocess
-Popen
-p0
-((lp1
-S'/bin/ls'
-p2
-atp3
-Rp4
-.
