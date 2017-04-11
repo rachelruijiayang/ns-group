@@ -40,7 +40,7 @@ server_to_client:
 """
 
 if(len(sys.argv) != 7):
-    print "Usage: ./client <server's IP or hostname> <server port> <client certificate file path> " \
+    print "Usage: python client.py <server's IP or hostname> <server port> <client certificate file path> " \
         "<client private key file path> <server certificate file path> <client public key file path>"
     exit()
 
