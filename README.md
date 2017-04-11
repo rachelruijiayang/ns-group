@@ -66,4 +66,5 @@ Note: To kill either the server or client, you can hit CTRL+C on the terminal. I
 
 Note: When you "put" a file from the client to the server, the filename is not allowed to end in .sha256 because that is a reserved extension. In particular, on the client if you tried to do "put foo N" and then "put foo.sha256 N", the first command would create both "foo" and "foo.sha256" (the signature) on the server, and the second command would overwrite the "foo.sha256" signature file, which we don't want to occur. Therefore, we don't allow the second command. 
 
+Note: We do not support transfers (put/get) of files with spaces in their filename. 
 
