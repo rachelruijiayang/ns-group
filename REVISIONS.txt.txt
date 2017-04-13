@@ -1,0 +1,10 @@
+Group 7 made the following revisions:
+-Changed from Pickle serialization to JSON serialization
+-Changed "Could not read file" and "File does not exist" error messages to "File <filename> could not be transferred"
+-Added program constraints to to README.md:
+	-You cannot transfer a file named "client_files"
+	-You cannot "put" a file whose filename ends in .sha256
+	-Our program does not support transfers of files with spaces in their filename
+-Changed readFileSafe() to encapsulate file-handling code in try-except-finally block
+-Removed "decryption failed" from the error message "Computed hash of <filename> does not match retrieved hash"
+-Edited "Usage" message in client.py
